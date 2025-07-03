@@ -17,11 +17,11 @@ dummy_tickets = {
 }
 
 # Dropdown for selecting dummy Jira ticket
-selected_ticket = st.selectbox("📋 Select Jira Ticket", list(dummy_tickets.keys()))
+selected_ticket = st.selectbox(" Select Jira Ticket", list(dummy_tickets.keys()))
 ticket_summary = dummy_tickets[selected_ticket]
 
-st.markdown(f"**📝 Ticket Summary:** {ticket_summary}")
-f st.button("🧪 Generate Test Cases") and ticket_summary.strip():
+st.markdown(f"** Ticket Summary:** {ticket_summary}")
+if st.button("Generate Test Cases") and ticket_summary.strip():
     try:
         response = openai.chat.completions.create(
             model="gpt-3.5-turbo",
