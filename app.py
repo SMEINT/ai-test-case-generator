@@ -7,7 +7,18 @@ openai.api_key = st.secrets["OPENAI_API_KEY"]
 
 st.title("AI Test Case Generator from Jira Ticket")
 
-ticket_summary = st.text_area("Enter Jira Ticket Summary or Description")
+st.markdown("### 🧾 Select a Dummy Jira Ticket")
+
+dummy_tickets = {
+    "JIRA-001": "As a user, I want to log in using OTP which should be valid for 5 mins",
+    "JIRA-002": "As an admin, I want to reset user passwords securely",
+    "JIRA-003": "As a user, I want to view my transaction history with filters"
+}
+
+selected_ticket = st.selectbox("Select Jira Ticket", list(dummy_tickets.keys()))
+ticket_summary = dummy_tickets[selected_ticket]
+
+st.write(f"**Ticket Summary:** {ticket_summary}")
 
 if st.button("Generate Test Cases") and ticket_summary.strip():
     try:
@@ -19,12 +30,8 @@ if st.button("Generate Test Cases") and ticket_summary.strip():
             ],
             temperature=0.7
         )
-
         generated_test_cases = response.choices[0].message.content
-        st.write("### ✅ Suggested Test Cases:")
-        st.write(generated_test_cases)
-
-    except openai.AuthenticationError:
-        st.error("❌ Authentication failed. Please double-check your OpenAI API key.")
+        st.success("✅ Suggested Test Cases:")
+        st.markdown(generated_test_cases)
     except Exception as e:
         st.error(f"❌ An unexpected error occurred: {e}")
