@@ -21,3 +21,20 @@ selected_ticket = st.selectbox("📋 Select Jira Ticket", list(dummy_tickets.key
 ticket_summary = dummy_tickets[selected_ticket]
 
 st.markdown(f"**📝 Ticket Summary:** {ticket_summary}")
+f st.button("🧪 Generate Test Cases") and ticket_summary.strip():
+    try:
+        response = openai.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                {"role": "system", "content": "You are a QA expert helping generate test cases from Jira ticket summaries."},
+                {"role": "user", "content": f"Generate 3 test cases for: {ticket_summary}"}
+            ],
+            temperature=0.7
+        )
+
+        generated_test_cases = response.choices[0].message.content
+        st.success("✅ Suggested Test Cases:")
+        st.markdown(generated_test_cases)
+
+    except Exception as e:
+        st.error(f"❌ Error occurred: {e}")
