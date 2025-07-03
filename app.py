@@ -42,16 +42,17 @@ if st.button(" Generate Test Cases") and ticket_summary.strip():
         st.success("✅ Suggested Test Cases:")
         st.markdown(generated_test_cases)
 
-        # Extract structured test case data from the generated markdown
-        df = pd.DataFrame(extract_test_cases(generated_test_cases))
-        output = io.BytesIO()
-        with pd.ExcelWriter(output, engine='openpyxl') as writer:
-            df.to_excel(writer, index=False, sheet_name="Test Cases")
-        st.download_button(
-            label="📥 Download Test Cases (Excel)",
-            data=output.getvalue(),
-            file_name="generated_test_cases.xlsx",
-            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-        )
-   except Exception as e:
-        st.error(f"❌ Failed to generate Excel file: {e}")
+try:
+    # Extract structured test case data from the generated markdown
+    df = pd.DataFrame(extract_test_cases(generated_test_cases))
+    output = io.BytesIO()
+    with pd.ExcelWriter(output, engine="openpyxl") as writer:
+        df.to_excel(writer, index=False, sheet_name="Test Cases")
+    st.download_button(
+        label="📥 Download Test Cases (Excel)",
+        data=output.getvalue(),
+        file_name="generated_test_cases.xlsx",
+        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
+except Exception as e:
+    st.error(f"❌ Failed to generate Excel file: {e}")
