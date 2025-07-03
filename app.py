@@ -3,7 +3,15 @@ import openai
 import pandas as pd
 import io
 
-# Dummy Jira tickets
+def extract_test_cases(markdown_text):
+    lines = markdown_text.split("\n")
+    test_cases = []
+    for line in lines:
+        line = line.strip()
+        if line and line[0].isdigit():
+            test_cases.append({"Test Case": line})
+    return test_cases
+
 dummy_tickets = {
     "JIRA-001": "As a user, I want to reset my password via email link.",
     "JIRA-002": "As a user, I want to view my transaction history with filters.",
