@@ -54,5 +54,5 @@ if st.button(" Generate Test Cases") and ticket_summary.strip():
             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         )
     except 
-    Exception as e:
+           Exception as e:
         st.error(f"❌ Failed to generate Excel file: {e}")
