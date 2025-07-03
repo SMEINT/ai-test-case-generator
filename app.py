@@ -22,8 +22,7 @@ ticket_summary = dummy_tickets[selected_ticket]
 
 st.markdown(f"** Ticket Summary:** {ticket_summary}")
 if st.button(" Generate Test Cases") and ticket_summary.strip():
-    try:
-        response = openai.chat.completions.create(
+try:response = openai.chat.completions.create(
             model="gpt-3.5-turbo",
             messages=[
                 {
@@ -42,8 +41,7 @@ if st.button(" Generate Test Cases") and ticket_summary.strip():
         st.success("✅ Suggested Test Cases:")
         st.markdown(generated_test_cases)
 
-try:
-    # Extract structured test case data from the generated markdown
+try:# Extract structured test case data from the generated markdown
     df = pd.DataFrame(extract_test_cases(generated_test_cases))
     output = io.BytesIO()
     with pd.ExcelWriter(output, engine="openpyxl") as writer:
