@@ -5,17 +5,13 @@ import io
 import requests
 import base64
 
-# ---------- Custom Font + Styles (Matching Screenshot) ----------
+# ---------- FIXED: Style (wrapped in markdown safely) ----------
 st.markdown("""
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
 html, body, [class*="css"] {
     font-family: 'Inter', sans-serif;
     background-color: #f9fbfc;
-}
-
-h1, h2, h3 {
-    font-weight: 700;
 }
 
 .app-title {
@@ -93,7 +89,7 @@ st.markdown('<p class="app-subtitle">Smart Test Case Generation from Jira Ticket
 JIRA_DOMAIN = "https://mitalisengar125.atlassian.net"
 JIRA_EMAIL = "mitalisengar125@gmail.com"
 
-# ---------- Fetch Jira Ticket IDs ----------
+# ---------- Fetch Jira Tickets ----------
 def fetch_all_ticket_ids(jira_project_key="SCRUM"):
     api_token = st.secrets["JIRA_API_TOKEN"]
     url = f"{JIRA_DOMAIN}/rest/api/3/search?jql=project={jira_project_key}&maxResults=10"
@@ -109,7 +105,7 @@ def fetch_all_ticket_ids(jira_project_key="SCRUM"):
         st.error(f"❌ Failed to fetch Jira tickets: {response.status_code}")
         return []
 
-# ---------- Ticket Summary Fetch ----------
+# ---------- Fetch Ticket Summary ----------
 def fetch_jira_ticket_summary(ticket_id):
     api_token = st.secrets["JIRA_API_TOKEN"]
     url = f"{JIRA_DOMAIN}/rest/api/3/issue/{ticket_id}"
@@ -129,7 +125,7 @@ def extract_test_cases(markdown_text):
     lines = markdown_text.split("\n")
     return [{"Test Case": line.strip()} for line in lines if line.strip() and line.strip()[0].isdigit()]
 
-# ---------- UI Block ----------
+# ---------- UI Card ----------
 st.markdown('<div class="app-box">', unsafe_allow_html=True)
 st.markdown('<div class="section-header">📄 <span>Ticket Info</span></div>', unsafe_allow_html=True)
 
@@ -179,4 +175,4 @@ if summary:
             except Exception as e:
                 st.error(f"❌ Error generating test cases: {e}")
 
-st.markdown('</div>', unsafe_allow_html=True)
+st.markdown('</div>', unsafe_allow_html=True)  # Close first card
