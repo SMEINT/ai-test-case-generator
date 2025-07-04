@@ -11,26 +11,29 @@ JIRA_DOMAIN = "https://mitalisengar125.atlassian.net"  # Your Jira server
 JIRA_EMAIL = "mitalisengar125@gmail.com"  # Replace with your Jira email
 
 # --------- FETCH ALL TICKETS ---------
-def fetch_all_ticket_ids():
+def fetch_jira_ticket_details(ticket_id):
+    jira_url = "https://mitalisengar125.atlassian.net"
     api_token = st.secrets["JIRA_API_TOKEN"]
-    url = f"{JIRA_DOMAIN}/rest/api/3/search"
+    email = "your_email@example.com"  # Replace with your actual Jira email
+
+    url = f"{jira_url}/rest/api/3/issue/{ticket_id}"
     headers = {
-        "Authorization": f"Basic {base64.b64encode(f'{JIRA_EMAIL}:{api_token}'.encode()).decode()}",
+        "Authorization": f"Basic {base64.b64encode(f'{email}:{api_token}'.encode()).decode()}",
         "Accept": "application/json"
     }
-    params = {
-        "jql": "project=SCRUM ORDER BY created DESC",
-        "fields": "key",
-        "maxResults": 50
-    }
 
-    response = requests.get(url, headers=headers, params=params)
+    response = requests.get(url, headers=headers)
     if response.status_code == 200:
-        issues = response.json()["issues"]
-        return [issue["key"] for issue in issues]
+        data = response.json()["fields"]
+        return {
+            "summary": data["summary"],
+            "priority": data["priority"]["name"] if "priority" in data else "Not set"
+        }
     else:
-        st.error(f"Failed to fetch Jira tickets: {response.status_code}")
-        return []
+        return {
+            "summary": f"❌ Error: {response.status_code}",
+            "priority": "Unknown"
+        }
 
 # --------- FETCH SUMMARY ---------
 def fetch_jira_ticket_summary(ticket_id):
