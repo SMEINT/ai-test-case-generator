@@ -74,10 +74,10 @@ JIRA_DOMAIN = "https://mitalisengar125.atlassian.net"
 JIRA_EMAIL = "mitalisengar125@gmail.com"
 
 # --------- FETCH ALL TICKETS ---------
-def fetch_all_ticket_ids(jira_project_key="SCRUM"):
-    jira_url = JIRA_DOMAIN
+# --------- FETCH SUMMARY WITH PRIORITY ---------
+def fetch_jira_ticket_summary(ticket_id):
     api_token = st.secrets["JIRA_API_TOKEN"]
-    url = f"{jira_url}/rest/api/3/search?jql=project={jira_project_key}&maxResults=10"
+    url = f"{JIRA_DOMAIN}/rest/api/3/issue/{ticket_id}"
     headers = {
         "Authorization": f"Basic {base64.b64encode(f'{JIRA_EMAIL}:{api_token}'.encode()).decode()}",
         "Accept": "application/json"
@@ -85,11 +85,18 @@ def fetch_all_ticket_ids(jira_project_key="SCRUM"):
 
     response = requests.get(url, headers=headers)
     if response.status_code == 200:
-        data = response.json()
-        return [issue["key"] for issue in data["issues"]]
+        data = response.json()["fields"]
+        summary = data.get("summary", "No Summary")
+        priority = data.get("priority", {}).get("name", "Not set")
+        return {
+            "id": ticket_id,
+            "summary": summary,
+            "priority": priority
+        }
     else:
-        st.error(f"❌ Failed to fetch Jira tickets: {response.status_code}")
-        return []
+        st.error(f"❌ Error fetching ticket summary: {response.status_code} - {response.text}")
+        return None
+
 
 # --------- FETCH SUMMARY WITH PRIORITY ---------
 def fetch_jira_ticket_summary(ticket_id):
