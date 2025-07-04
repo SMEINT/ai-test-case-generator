@@ -6,90 +6,42 @@ import requests
 import base64
 
 # --------- CUSTOM STYLING ---------
+# ------- TICKET INFO DISPLAY (Clean, Aligned Block) -------
 st.markdown("""
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+<div class="ticket-card">
+    <div class="ticket-title"><strong>Ticket Summary:</strong> {ticket_id} – {summary}</div>
+    <div class="priority-tag">{priority}</div>
+</div>
+""".format(ticket_id=selected_ticket, summary=summary, priority=priority), unsafe_allow_html=True)
+
+# Add styling
+st.markdown("""
 <style>
-    html, body, [class*="css"] {
-        font-family: 'Poppins', sans-serif;
-        font-size: 15px;
-        color: #172B4D;
-    }
-
-    .app-container {
-        max-width: 700px;
-        margin: 0 auto;
-        padding-top: 2rem;
-    }
-
-    h1.big-title {
-        font-size: 32px;
-        font-weight: 700;
-        margin-bottom: 4px;
-        display: flex;
-        align-items: center;
-    }
-
-    .subtitle {
-        font-size: 15px;
-        color: #5E6C84;
-        margin-bottom: 24px;
-    }
-
-    .section-box {
-        background-color: #fff;
-        border-radius: 12px;
-        padding: 1.5rem 1.75rem;
-        box-shadow: 0 4px 10px rgba(0,0,0,0.06);
-        margin-bottom: 2rem;
-    }
-
-    .section-title {
-        font-size: 20px;
-        font-weight: 600;
-        margin-bottom: 1rem;
-        display: flex;
-        align-items: center;
-    }
-
-    .section-title:before {
-        content: "🗂️";
-        margin-right: 8px;
-    }
-
-    .summary-box {
-        background-color: #F4F5F7;
-        padding: 8px 12px;
-        border-radius: 6px;
-        font-size: 14px;
-        margin: 8px 0 12px 0;
-        display: inline-block;
-    }
-
-    .priority-badge {
-        background-color: #D3F9D8;
-        color: #267B4A;
-        font-weight: 600;
-        font-size: 13px;
-        padding: 4px 10px;
-        border-radius: 20px;
-        display: inline-block;
-    }
-
-    .stButton > button {
-        background-color: #0052CC;
-        color: #fff;
-        border-radius: 6px;
-        padding: 0.55rem 1.4rem;
-        font-weight: 600;
-        border: none;
-        transition: 0.2s all;
-    }
-
-    .stButton > button:hover {
-        background-color: #0747A6;
-    }
+.ticket-card {
+    background-color: #f7f9fb;
+    border: 1px solid #dfe3e6;
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin-top: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 15px;
+}
+.ticket-title {
+    color: #172B4D;
+}
+.priority-tag {
+    background-color: #E3FCEF;
+    color: #006644;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+}
 </style>
 """, unsafe_allow_html=True)
+
 
 # --------- HEADER ---------
 st.markdown('<div class="app-container">', unsafe_allow_html=True)
