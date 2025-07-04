@@ -2,8 +2,30 @@ import streamlit as st
 import openai
 import pandas as pd
 import io
+import requests
+import os
 
 def extract_test_cases(markdown_text):
+    def get_ticket_summary_from_jira(ticket_id):
+    jira_url = "https://mitalisengar125.atlassian.net"  # Your Jira server
+    email = os.getenv("JIRA_EMAIL")
+    api_token = os.getenv("JIRA_API_TOKEN")
+
+    headers = {
+        "Accept": "application/json"
+    }
+
+    response = requests.get(
+        f"{jira_url}/rest/api/3/issue/{ticket_id}",
+        headers=headers,
+        auth=(email, api_token)
+    )
+
+    if response.status_code == 200:
+        return response.json()["fields"]["summary"]
+    else:
+        return f"❌ Error fetching ticket summary: {response.status_code} - {response.text}"
+
     lines = markdown_text.split("\n")
     test_cases = []
     for line in lines:
@@ -12,10 +34,10 @@ def extract_test_cases(markdown_text):
             test_cases.append({"Test Case": line})
     return test_cases
 
-dummy_tickets = {
-    "JIRA-001": "As a user, I want to reset my password via email link.",
-    "JIRA-002": "As a user, I want to view my transaction history with filters.",
-    "JIRA-003": "As an admin, I want to approve or reject pending user registrations."
+jira_ticket_ids = ["SCRUM-1", "SCRUM-2", "SCRUM-3"]  # Use your actual ticket IDs
+selected_ticket = st.selectbox("🧾 Select Jira Ticket", jira_ticket_ids)
+ticket_summary = get_ticket_summary_from_jira(selected_ticket)
+
 }
 
 # Dropdown for selecting dummy Jira ticket
