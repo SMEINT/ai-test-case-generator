@@ -147,7 +147,6 @@ def extract_test_cases(markdown_text):
     return test_cases
 
 # --------- UI ---------
-st.markdown('<div class="section-box">', unsafe_allow_html=True)
 st.markdown('<div class="section-title">Ticket Info</div>', unsafe_allow_html=True)
 
 ticket_ids = fetch_all_ticket_ids()
@@ -157,7 +156,7 @@ summary, priority = fetch_jira_ticket_summary(selected_ticket)
 
 if summary:
     st.markdown(f'<div class="summary-box"><strong>Ticket Summary:</strong> {selected_ticket} – {summary}</div>', unsafe_allow_html=True)
-    st.markdown(f'<div class="priority-badge">{priority}</div>', unsafe_allow_html=True)
+    st.text_input(f'<div class="priority-badge">{priority}</div>', unsafe_allow_html=True)
 
     if st.button("🚀 Generate Test Cases"):
         with st.spinner("Generating test cases using AI..."):
