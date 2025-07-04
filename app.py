@@ -6,11 +6,9 @@ import requests
 import base64
 
 # --------- STYLING (Jira-inspired) ---------
+# --------- STYLING (Jira-inspired - Bold Font Restored) ---------
 st.markdown("""
     <style>
-        html, body, [class*="css"]  {
-            font-family: 'Segoe UI', sans-serif;
-        }
         .stButton>button {
             background-color: #0052CC;
             color: white;
@@ -27,11 +25,20 @@ st.markdown("""
         .stSelectbox>div>div:focus {
             box-shadow: none !important;
         }
-        .stMarkdown h1 {
+        .stMarkdown h1, .stMarkdown h2, .stMarkdown h3 {
             color: #172B4D;
+            font-weight: bold;
+        }
+        code {
+            background-color: #F4F5F7;
+            padding: 2px 6px;
+            border-radius: 4px;
+            color: #172B4D;
+            font-size: 0.95rem;
         }
     </style>
 """, unsafe_allow_html=True)
+
 
 # --------- HEADER ---------
 st.markdown("### 📋 AI-Powered Test Case Generator")
