@@ -5,54 +5,88 @@ import io
 import requests
 import base64
 
-# --------- CUSTOM STYLING ---------
-# ------- TICKET INFO DISPLAY (Clean, Aligned Block) -------
+# --------- Custom Font and Style ---------
 st.markdown("""
-<div class="ticket-card">
-    <div class="ticket-title"><strong>Ticket Summary:</strong> {ticket_id} – {summary}</div>
-    <div class="priority-tag">{priority}</div>
-</div>
-""".format(ticket_id=selected_ticket, summary=summary, priority=priority), unsafe_allow_html=True)
-
-# Add styling
-st.markdown("""
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
-.ticket-card {
-    background-color: #f7f9fb;
-    border: 1px solid #dfe3e6;
-    border-radius: 8px;
-    padding: 12px 16px;
-    margin-top: 12px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-size: 15px;
-}
-.ticket-title {
-    color: #172B4D;
-}
-.priority-tag {
-    background-color: #E3FCEF;
-    color: #006644;
-    padding: 4px 12px;
-    border-radius: 20px;
-    font-size: 13px;
-    font-weight: 600;
-}
+    html, body, [class*="css"] {
+        font-family: 'Inter', sans-serif;
+        background-color: #f9fbfc;
+        font-size: 15px;
+    }
+
+    .app-box {
+        background-color: white;
+        padding: 24px 32px;
+        border-radius: 12px;
+        box-shadow: 0px 2px 8px rgba(0,0,0,0.05);
+        margin-bottom: 24px;
+    }
+
+    .app-title {
+        font-size: 36px;
+        font-weight: 700;
+        color: #1c274c;
+        margin-bottom: 0;
+    }
+
+    .app-subtitle {
+        font-size: 16px;
+        color: #4a5568;
+        margin-top: 0;
+        margin-bottom: 32px;
+    }
+
+    .section-title {
+        font-weight: 700;
+        font-size: 18px;
+        margin-bottom: 12px;
+        display: flex;
+        align-items: center;
+        color: #2d3748;
+    }
+
+    .section-title span {
+        margin-left: 8px;
+    }
+
+    .summary-box {
+        background-color: #f1f5f9;
+        border-radius: 8px;
+        padding: 12px 16px;
+        display: flex;
+        justify-content: space-between;
+        font-weight: 500;
+        color: #1a202c;
+    }
+
+    .generate-btn button {
+        background-color: #0052CC;
+        color: #fff;
+        font-weight: 600;
+        padding: 12px 20px;
+        border: none;
+        border-radius: 8px;
+        font-size: 15px;
+        transition: 0.2s;
+    }
+
+    .generate-btn button:hover {
+        background-color: #0747A6;
+    }
+
 </style>
 """, unsafe_allow_html=True)
 
-
-# --------- HEADER ---------
-st.markdown('<div class="app-container">', unsafe_allow_html=True)
-st.markdown('<h1 class="big-title">🧠 CaseCraft</h1>', unsafe_allow_html=True)
-st.markdown('<div class="subtitle">Smart Test Case Generation from Jira Tickets</div>', unsafe_allow_html=True)
+# --------- Header ---------
+st.markdown('<h1 class="app-title">🧠 CaseCraft</h1>', unsafe_allow_html=True)
+st.markdown('<p class="app-subtitle">Smart Test Case Generation from Jira Tickets</p>', unsafe_allow_html=True)
 
 # --------- JIRA CONFIG ---------
 JIRA_DOMAIN = "https://mitalisengar125.atlassian.net"
 JIRA_EMAIL = "mitalisengar125@gmail.com"
 
-# --------- FETCH TICKET LIST ---------
+# --------- Fetch Jira Tickets ---------
 def fetch_all_ticket_ids(jira_project_key="SCRUM"):
     api_token = st.secrets["JIRA_API_TOKEN"]
     url = f"{JIRA_DOMAIN}/rest/api/3/search?jql=project={jira_project_key}&maxResults=10"
@@ -69,7 +103,6 @@ def fetch_all_ticket_ids(jira_project_key="SCRUM"):
         st.error(f"❌ Failed to fetch Jira tickets: {response.status_code}")
         return []
 
-# --------- FETCH SUMMARY & PRIORITY ---------
 def fetch_jira_ticket_summary(ticket_id):
     api_token = st.secrets["JIRA_API_TOKEN"]
     url = f"{JIRA_DOMAIN}/rest/api/3/issue/{ticket_id}"
@@ -88,7 +121,6 @@ def fetch_jira_ticket_summary(ticket_id):
         st.error(f"❌ Error fetching ticket summary: {response.status_code}")
         return None, None
 
-# --------- PARSE TEST CASES ---------
 def extract_test_cases(markdown_text):
     lines = markdown_text.split("\n")
     test_cases = []
@@ -98,9 +130,9 @@ def extract_test_cases(markdown_text):
             test_cases.append({"Test Case": line})
     return test_cases
 
-# --------- UI ---------
-st.markdown('<div class="section-box">', unsafe_allow_html=True)
-st.markdown('<div class="section-title">Ticket Info</div>', unsafe_allow_html=True)
+# --------- UI Block: Ticket Info ---------
+st.markdown('<div class="app-box">', unsafe_allow_html=True)
+st.markdown('<div class="section-title">📁 <span>Ticket Info</span></div>', unsafe_allow_html=True)
 
 ticket_ids = fetch_all_ticket_ids()
 selected_ticket = st.selectbox("Select Jira Ticket", ticket_ids)
@@ -108,10 +140,10 @@ selected_ticket = st.selectbox("Select Jira Ticket", ticket_ids)
 summary, priority = fetch_jira_ticket_summary(selected_ticket)
 
 if summary:
-    st.markdown(f'<div class="summary-box"><strong>Ticket Summary:</strong> {selected_ticket} – {summary}</div>', unsafe_allow_html=True)
-    st.markdown(f'<div class="priority-badge">{priority}</div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-title" style="font-size:14px; margin-top:20px;">Ticket Summary</div>', unsafe_allow_html=True)
+    st.markdown(f'<div class="summary-box"><div>{selected_ticket} &nbsp;&nbsp; {summary}</div><div>{priority}</div></div>', unsafe_allow_html=True)
 
-    if st.button("🚀 Generate Test Cases"):
+    if st.button("🚀 Generate Test Cases", key="generate", help="Click to generate cases using AI", type="primary"):
         with st.spinner("Generating test cases using AI..."):
             try:
                 response = openai.chat.completions.create(
@@ -124,10 +156,12 @@ if summary:
                 )
 
                 generated_test_cases = response.choices[0].message.content
+                st.markdown('</div>', unsafe_allow_html=True)  # Close previous box
+                st.markdown('<div class="app-box">', unsafe_allow_html=True)
+                st.markdown('<div class="section-title">🧪 <span>Test Case Output</span></div>', unsafe_allow_html=True)
                 st.success("✅ Suggested Test Cases:")
                 st.markdown(generated_test_cases)
 
-                # Excel export
                 df = pd.DataFrame(extract_test_cases(generated_test_cases))
                 output = io.BytesIO()
                 with pd.ExcelWriter(output, engine="openpyxl") as writer:
@@ -143,5 +177,4 @@ if summary:
             except Exception as e:
                 st.error(f"❌ Failed to generate test cases: {e}")
 
-st.markdown("</div>", unsafe_allow_html=True)  # close .section-box
-st.markdown("</div>", unsafe_allow_html=True)  # close .app-container
+st.markdown('</div>', unsafe_allow_html=True)  # Close last box
