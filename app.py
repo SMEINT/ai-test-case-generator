@@ -14,7 +14,7 @@ JIRA_EMAIL = "mitalisengar125@gmail.com"  # Replace with your Jira email
 def fetch_all_ticket_ids(jira_project_key="SCRUM"):
     jira_url = "https://mitalisengar125.atlassian.net"
     api_token = st.secrets["JIRA_API_TOKEN"]
-    email = "your_email@example.com"  # Replace with your actual Jira email
+    email = "mitalisengar125@gmail.com"  # Replace with your actual Jira email
 
     url = f"{jira_url}/rest/api/3/search?jql=project={jira_project_key}&maxResults=10"
     headers = {
