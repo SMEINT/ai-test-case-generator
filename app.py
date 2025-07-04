@@ -5,64 +5,78 @@ import io
 import requests
 import base64
 
-# --------- CUSTOM STYLING (Modern Jira-like) ---------
-# --------- FONT AND STYLE (Poppins) ---------
+# ---------- Page Config ----------
+st.set_page_config(page_title="CaseCraft - AI Test Case Generator", layout="centered")
+
+# ---------- Modern UI Styling ----------
 st.markdown("""
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
     html, body, [class*="css"] {
-        font-family: 'Poppins', sans-serif;
+        font-family: 'Inter', sans-serif;
+        background-color: #F5F6FA;
+        color: #172B4D;
         font-size: 15px;
+    }
+    h1, h2, h3, h4 {
+        font-weight: 700;
         color: #172B4D;
     }
-
-    h1, h2, h3 {
-        font-weight: 700 !important;
-        color: #172B4D;
+    .main-title {
+        font-size: 2rem;
+        font-weight: 700;
+        margin-bottom: 0.25rem;
+        color: #2C3E50;
     }
-
-    .big-header {
-        font-size: 26px !important;
-        font-weight: 700 !important;
-        margin-bottom: 8px;
+    .sub-text {
+        color: #5E6C84;
+        font-size: 0.95rem;
+        margin-bottom: 2rem;
     }
-
+    .ticket-box {
+        background-color: #FFFFFF;
+        padding: 1rem 1.5rem;
+        border-radius: 8px;
+        border: 1px solid #DFE1E6;
+        margin-top: 0.75rem;
+    }
+    .stSelectbox>div>div {
+        border-radius: 6px;
+        padding: 8px 10px;
+    }
     .stButton > button {
         background-color: #0052CC;
         color: #fff;
-        border-radius: 6px;
-        padding: 0.55rem 1.4rem;
         font-weight: 600;
+        padding: 0.55rem 1.5rem;
+        border-radius: 6px;
         border: none;
-        transition: 0.2s all;
     }
-
     .stButton > button:hover {
         background-color: #0747A6;
     }
-
-    code {
-        background-color: #F4F5F7;
+    .stMarkdown code {
+        background: #F4F5F7;
         padding: 4px 8px;
         border-radius: 4px;
-        font-size: 14px;
-        color: #091E42;
-        display: inline-block;
+    }
+    .section-header {
+        font-weight: 600;
+        margin-top: 2rem;
+        color: #253858;
+        font-size: 1.1rem;
     }
 </style>
 """, unsafe_allow_html=True)
 
+# ---------- Header ----------
+st.markdown('<div class="main-title">🚀 CaseCraft</div>', unsafe_allow_html=True)
+st.markdown('<div class="sub-text">Generate intelligent test cases from your Jira tickets using AI</div>', unsafe_allow_html=True)
 
-
-# --------- HEADER ---------
-st.markdown("### 📋 AI-Powered Test Case Generator")
-st.markdown("Generate QA test cases directly from your Jira ticket summary using AI.")
-
-# --------- JIRA CONFIG ---------
+# ---------- Jira Config ----------
 JIRA_DOMAIN = "https://mitalisengar125.atlassian.net"
 JIRA_EMAIL = "mitalisengar125@gmail.com"
 
-# --------- FETCH ALL TICKETS ---------
 def fetch_all_ticket_ids(jira_project_key="SCRUM"):
     api_token = st.secrets["JIRA_API_TOKEN"]
     url = f"{JIRA_DOMAIN}/rest/api/3/search?jql=project={jira_project_key}&maxResults=10"
@@ -79,7 +93,6 @@ def fetch_all_ticket_ids(jira_project_key="SCRUM"):
         st.error(f"❌ Failed to fetch Jira tickets: {response.status_code}")
         return []
 
-# --------- FETCH SUMMARY & PRIORITY ---------
 def fetch_jira_ticket_summary(ticket_id):
     api_token = st.secrets["JIRA_API_TOKEN"]
     url = f"{JIRA_DOMAIN}/rest/api/3/issue/{ticket_id}"
@@ -98,27 +111,26 @@ def fetch_jira_ticket_summary(ticket_id):
         st.error(f"❌ Error fetching ticket summary: {response.status_code} - {response.text}")
         return None, None
 
-# --------- PARSE MARKDOWN ---------
 def extract_test_cases(markdown_text):
     lines = markdown_text.split("\n")
-    test_cases = []
-    for line in lines:
-        line = line.strip()
-        if line and line[0].isdigit():
-            test_cases.append({"Test Case": line})
-    return test_cases
+    return [{"Test Case": line.strip()} for line in lines if line.strip() and line[0].isdigit()]
 
-# --------- UI ---------
+# ---------- UI Logic ----------
 ticket_ids = fetch_all_ticket_ids()
 selected_ticket = st.selectbox("🎟️ Select Jira Ticket", ticket_ids)
 
 summary, priority = fetch_jira_ticket_summary(selected_ticket)
 
 if summary:
-    st.markdown("### 📝 Ticket Summary")
-    st.markdown(f"<code>{summary} (Priority: {priority})</code>", unsafe_allow_html=True)
+    st.markdown('<div class="section-header">🎫 Ticket Summary</div>', unsafe_allow_html=True)
+    st.markdown(f"""
+        <div class="ticket-box">
+            <strong>{selected_ticket}</strong>: {summary}<br>
+            <code>Priority: {priority}</code>
+        </div>
+    """, unsafe_allow_html=True)
 
-    if st.button("🚀 Generate Test Cases"):
+    if st.button("✨ Generate Test Cases"):
         with st.spinner("Generating test cases using AI..."):
             try:
                 response = openai.chat.completions.create(
@@ -129,23 +141,19 @@ if summary:
                     ],
                     temperature=0.7
                 )
-
                 generated_test_cases = response.choices[0].message.content
                 st.success("✅ Suggested Test Cases:")
                 st.markdown(generated_test_cases)
 
-                try:
-                    df = pd.DataFrame(extract_test_cases(generated_test_cases))
-                    output = io.BytesIO()
-                    with pd.ExcelWriter(output, engine="openpyxl") as writer:
-                        df.to_excel(writer, index=False, sheet_name="Test Cases")
-                    st.download_button(
-                        label="📥 Download Test Cases (Excel)",
-                        data=output.getvalue(),
-                        file_name="generated_test_cases.xlsx",
-                        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-                    )
-                except Exception as e:
-                    st.error(f"❌ Failed to generate Excel file: {e}")
+                df = pd.DataFrame(extract_test_cases(generated_test_cases))
+                output = io.BytesIO()
+                with pd.ExcelWriter(output, engine="openpyxl") as writer:
+                    df.to_excel(writer, index=False, sheet_name="Test Cases")
+                st.download_button(
+                    label="📥 Download Test Cases (Excel)",
+                    data=output.getvalue(),
+                    file_name="generated_test_cases.xlsx",
+                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                )
             except Exception as e:
                 st.error(f"❌ Failed to generate test cases: {e}")
