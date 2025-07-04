@@ -7,37 +7,62 @@ import base64
 
 # --------- STYLING (Jira-inspired) ---------
 # --------- STYLING (Jira-inspired - Bold Font Restored) ---------
+# --------- CUSTOM STYLING (Modern, Jira-like) ---------
 st.markdown("""
-    <style>
-        .stButton>button {
-            background-color: #0052CC;
-            color: white;
-            border-radius: 6px;
-            padding: 0.5rem 1.2rem;
-            font-weight: 600;
-        }
-        .stButton>button:hover {
-            background-color: #0747A6;
-        }
-        .stSelectbox>div>div {
-            border: none !important;
-        }
-        .stSelectbox>div>div:focus {
-            box-shadow: none !important;
-        }
-        .stMarkdown h1, .stMarkdown h2, .stMarkdown h3 {
-            color: #172B4D;
-            font-weight: bold;
-        }
-        code {
-            background-color: #F4F5F7;
-            padding: 2px 6px;
-            border-radius: 4px;
-            color: #172B4D;
-            font-size: 0.95rem;
-        }
-    </style>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+    html, body, [class*="css"] {
+        font-family: 'Inter', sans-serif;
+        font-size: 15px;
+        color: #172B4D;
+    }
+
+    h1, h2, h3, h4 {
+        font-weight: 700;
+        color: #172B4D;
+        margin-bottom: 0.5rem;
+    }
+
+    .stButton > button {
+        background-color: #0052CC;
+        color: #fff;
+        border-radius: 6px;
+        padding: 0.55rem 1.4rem;
+        font-weight: 600;
+        border: none;
+        transition: 0.2s all;
+    }
+
+    .stButton > button:hover {
+        background-color: #0747A6;
+    }
+
+    .stSelectbox > div > div {
+        border: 1px solid #DFE1E6;
+        border-radius: 6px;
+        padding: 6px 10px;
+    }
+
+    .stSelectbox > div > div:focus {
+        box-shadow: none !important;
+        border: 1px solid #4C9AFF !important;
+    }
+
+    code {
+        background-color: #F4F5F7;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 14px;
+        color: #091E42;
+        display: inline-block;
+    }
+
+    .stMarkdown {
+        line-height: 1.6;
+    }
+</style>
 """, unsafe_allow_html=True)
+
 
 
 # --------- HEADER ---------
