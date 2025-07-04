@@ -4,28 +4,51 @@ import pandas as pd
 import io
 import requests
 import os
+import base64
 
-def extract_test_cases(markdown_text):
-    def get_ticket_summary_from_jira(ticket_id):
-    jira_url = "https://mitalisengar125.atlassian.net"  # Your Jira server
-    email = os.getenv("JIRA_EMAIL")
-    api_token = os.getenv("JIRA_API_TOKEN")
+# --------- JIRA CONFIG ---------
+JIRA_DOMAIN = "https://mitalisengar125.atlassian.net"  # Your Jira server
+JIRA_EMAIL = "mitalisengar125@gmail.com"  # Replace with your Jira email
 
+# --------- FETCH ALL TICKETS ---------
+def fetch_all_ticket_ids():
+    api_token = st.secrets["JIRA_API_TOKEN"]
+    url = f"{JIRA_DOMAIN}/rest/api/3/search"
     headers = {
+        "Authorization": f"Basic {base64.b64encode(f'{JIRA_EMAIL}:{api_token}'.encode()).decode()}",
+        "Accept": "application/json"
+    }
+    params = {
+        "jql": "project=SCRUM ORDER BY created DESC",
+        "fields": "key",
+        "maxResults": 50
+    }
+
+    response = requests.get(url, headers=headers, params=params)
+    if response.status_code == 200:
+        issues = response.json()["issues"]
+        return [issue["key"] for issue in issues]
+    else:
+        st.error(f"Failed to fetch Jira tickets: {response.status_code}")
+        return []
+
+# --------- FETCH SUMMARY ---------
+def fetch_jira_ticket_summary(ticket_id):
+    api_token = st.secrets["JIRA_API_TOKEN"]
+    url = f"{JIRA_DOMAIN}/rest/api/3/issue/{ticket_id}"
+    headers = {
+        "Authorization": f"Basic {base64.b64encode(f'{JIRA_EMAIL}:{api_token}'.encode()).decode()}",
         "Accept": "application/json"
     }
 
-    response = requests.get(
-        f"{jira_url}/rest/api/3/issue/{ticket_id}",
-        headers=headers,
-        auth=(email, api_token)
-    )
-
+    response = requests.get(url, headers=headers)
     if response.status_code == 200:
         return response.json()["fields"]["summary"]
     else:
         return f"❌ Error fetching ticket summary: {response.status_code} - {response.text}"
 
+# --------- PARSE MARKDOWN ---------
+def extract_test_cases(markdown_text):
     lines = markdown_text.split("\n")
     test_cases = []
     for line in lines:
@@ -34,13 +57,10 @@ def extract_test_cases(markdown_text):
             test_cases.append({"Test Case": line})
     return test_cases
 
-jira_ticket_ids = ["SCRUM-1", "SCRUM-2", "SCRUM-3"]  # Use your actual ticket IDs
-selected_ticket = st.selectbox("🧾 Select Jira Ticket", jira_ticket_ids)
-ticket_summary = get_ticket_summary_from_jira(selected_ticket)
-
-# Dropdown for selecting dummy Jira ticket
-selected_ticket = st.selectbox("🎫 Select Jira Ticket", list(dummy_tickets.keys()))
-ticket_summary = dummy_tickets[selected_ticket]
+# --------- UI ---------
+ticket_ids = fetch_all_ticket_ids()
+selected_ticket = st.selectbox("🧾 Select Jira Ticket", ticket_ids)
+ticket_summary = fetch_jira_ticket_summary(selected_ticket)
 
 st.markdown(f"**📝 Ticket Summary:** {ticket_summary}")
 
@@ -66,7 +86,6 @@ if st.button("🚀 Generate Test Cases") and ticket_summary.strip():
         st.markdown(generated_test_cases)
 
         try:
-            # Extract structured test case data from the generated markdown
             df = pd.DataFrame(extract_test_cases(generated_test_cases))
             output = io.BytesIO()
             with pd.ExcelWriter(output, engine="openpyxl") as writer:
