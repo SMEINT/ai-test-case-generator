@@ -1,3 +1,4 @@
+
 import streamlit as st
 import openai
 import pandas as pd
@@ -6,57 +7,47 @@ import requests
 import os
 import base64
 
-# ---------- Jira Config ----------
-JIRA_DOMAIN = "https://mitalisengar125.atlassian.net"
-JIRA_EMAIL = "mitalisengar125@gmail.com"
-
-st.set_page_config(page_title="Jira AI Test Case Generator", layout="centered")
-
-# ---------- CSS Styling ----------
+# --------- STYLING (Jira-inspired) ---------
 st.markdown("""
     <style>
-        body {
-            background-color: #ffffff;
+        html, body, [class*="css"]  {
+            font-family: 'Segoe UI', sans-serif;
         }
         .stButton>button {
             background-color: #0052CC;
             color: white;
-            border: none;
-            padding: 0.6em 1.2em;
+            border-radius: 6px;
+            padding: 0.5rem 1.2rem;
             font-weight: 600;
-            border-radius: 4px;
-            transition: all 0.3s ease;
         }
         .stButton>button:hover {
-            background-color: #0065FF;
+            background-color: #0747A6;
         }
-        .stSelectbox label, .stMarkdown {
-            font-weight: 600;
+        .stSelectbox>div>div {
+            border: none !important;
+        }
+        .stSelectbox>div>div:focus {
+            box-shadow: none !important;
+        }
+        .stMarkdown h1 {
             color: #172B4D;
-        }
-        .stSelectbox div[role="combobox"] {
-            background-color: #F4F5F7;
-            border-radius: 4px;
-        }
-        .stDownloadButton>button {
-            background-color: #36B37E;
-            color: white;
-            border: none;
-        }
-        .stDownloadButton>button:hover {
-            background-color: #57D9A3;
-        }
-        .block-container {
-            padding-top: 2rem;
-            padding-bottom: 2rem;
         }
     </style>
 """, unsafe_allow_html=True)
 
-# ---------- Fetch Jira Tickets ----------
+# --------- HEADER ---------
+st.markdown("### 📋 AI-Powered Test Case Generator")
+st.markdown("Generate QA test cases directly from your Jira ticket summary using AI.")
+
+# --------- JIRA CONFIG ---------
+JIRA_DOMAIN = "https://mitalisengar125.atlassian.net"
+JIRA_EMAIL = "mitalisengar125@gmail.com"
+
+# --------- FETCH ALL TICKETS ---------
 def fetch_all_ticket_ids(jira_project_key="SCRUM"):
+    jira_url = JIRA_DOMAIN
     api_token = st.secrets["JIRA_API_TOKEN"]
-    url = f"{JIRA_DOMAIN}/rest/api/3/search?jql=project={jira_project_key}&maxResults=10"
+    url = f"{jira_url}/rest/api/3/search?jql=project={jira_project_key}&maxResults=10"
     headers = {
         "Authorization": f"Basic {base64.b64encode(f'{JIRA_EMAIL}:{api_token}'.encode()).decode()}",
         "Accept": "application/json"
@@ -70,7 +61,7 @@ def fetch_all_ticket_ids(jira_project_key="SCRUM"):
         st.error(f"❌ Failed to fetch Jira tickets: {response.status_code}")
         return []
 
-# ---------- Fetch Ticket Summary ----------
+# --------- FETCH SUMMARY WITH PRIORITY ---------
 def fetch_jira_ticket_summary(ticket_id):
     api_token = st.secrets["JIRA_API_TOKEN"]
     url = f"{JIRA_DOMAIN}/rest/api/3/issue/{ticket_id}"
@@ -81,11 +72,14 @@ def fetch_jira_ticket_summary(ticket_id):
 
     response = requests.get(url, headers=headers)
     if response.status_code == 200:
-        return response.json()["fields"]["summary"]
+        data = response.json()["fields"]
+        summary = data.get("summary", "")
+        priority = data.get("priority", {}).get("name", "Not set")
+        return f"{summary} (Priority: {priority})"
     else:
         return f"❌ Error fetching ticket summary: {response.status_code} - {response.text}"
 
-# ---------- Parse Output ----------
+# --------- PARSE MARKDOWN ---------
 def extract_test_cases(markdown_text):
     lines = markdown_text.split("\n")
     test_cases = []
@@ -95,29 +89,28 @@ def extract_test_cases(markdown_text):
             test_cases.append({"Test Case": line})
     return test_cases
 
-# ---------- UI ----------
-st.title("📋 AI-Powered Test Case Generator")
-st.caption("Generate QA test cases directly from your Jira ticket summary using AI.")
-
+# --------- UI ---------
 ticket_ids = fetch_all_ticket_ids()
 selected_ticket = st.selectbox("🧾 Select Jira Ticket", ticket_ids)
-
 ticket_summary = fetch_jira_ticket_summary(selected_ticket)
-st.markdown(f"### 📝 Ticket Summary\n`{ticket_summary}`")
+
+st.markdown(f"### 📝 Ticket Summary")
+st.markdown(f"<code>{ticket_summary}</code>", unsafe_allow_html=True)
 
 if st.button("🚀 Generate Test Cases") and ticket_summary.strip():
     try:
         response = openai.chat.completions.create(
             model="gpt-3.5-turbo",
             messages=[
-                {
-                    "role": "system",
-                    "content": "You are a QA expert helping generate test cases from Jira ticket summaries."
-                },
-                {
-                    "role": "user",
-                    "content": f"Generate detailed test cases for the following feature:\n\n{ticket_summary}\n\nInclude:\n- ✅ Positive test cases\n- ❌ Negative test cases\n- 🟡 Edge case scenarios"
-                }
+                {"role": "system", "content": "You are a QA expert helping generate test cases from Jira ticket summaries."},
+                {"role": "user", "content": f"Generate detailed test cases for the following feature:
+
+{ticket_summary}
+
+Include:
+- ✅ Positive test cases
+- ❌ Negative test cases
+- 🟡 Edge case scenarios"}
             ],
             temperature=0.7
         )
@@ -139,5 +132,6 @@ if st.button("🚀 Generate Test Cases") and ticket_summary.strip():
             )
         except Exception as e:
             st.error(f"❌ Failed to generate Excel file: {e}")
+
     except Exception as e:
         st.error(f"❌ Failed to generate test cases: {e}")
