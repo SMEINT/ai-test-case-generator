@@ -5,91 +5,96 @@ import io
 import requests
 import base64
 
-# ---------- FIXED: Style (wrapped in markdown safely) ----------
+# ------------ Visual Styling (Fully Matched) ------------
 st.markdown("""
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
 html, body, [class*="css"] {
     font-family: 'Inter', sans-serif;
-    background-color: #f9fbfc;
+    background-color: #f5f8fc;
+    font-size: 15px;
 }
 
-.app-title {
-    font-size: 36px;
+h1 {
     font-weight: 700;
-    color: #1c1c1c;
-    margin-top: 20px;
+    font-size: 40px;
     text-align: center;
+    color: #1a1a1a;
+    margin-bottom: 0;
 }
 
-.app-subtitle {
-    font-size: 16px;
-    color: #4a5568;
+p.subtitle {
     text-align: center;
+    color: #6b7280;
+    font-size: 16px;
+    margin-top: 4px;
     margin-bottom: 32px;
 }
 
-.app-box {
-    background: #ffffff;
+.card {
+    background-color: #ffffff;
     padding: 24px 32px;
-    border-radius: 12px;
-    box-shadow: 0px 4px 12px rgba(0,0,0,0.06);
-    width: 100%;
-    max-width: 600px;
+    border-radius: 16px;
+    box-shadow: 0px 4px 16px rgba(0,0,0,0.05);
+    max-width: 700px;
     margin: 0 auto 32px auto;
 }
 
-.section-header {
-    font-size: 18px;
-    font-weight: 700;
-    margin-bottom: 16px;
+.section-title {
     display: flex;
     align-items: center;
-    color: #1a202c;
+    font-weight: 700;
+    font-size: 18px;
+    color: #1f2937;
+    margin-bottom: 16px;
 }
 
-.section-header span {
-    margin-left: 8px;
+.section-title img {
+    width: 22px;
+    height: 22px;
+    margin-right: 10px;
 }
 
-.summary-box {
+.summary-row {
     background-color: #f1f5f9;
     border-radius: 8px;
     padding: 12px 16px;
     display: flex;
     justify-content: space-between;
+    align-items: center;
     font-weight: 500;
-    color: #1a202c;
     font-size: 14px;
-    margin-top: 16px;
+    color: #1e293b;
+    margin-top: 8px;
 }
 
 .stButton > button {
     background-color: #0052cc;
-    color: #fff;
+    color: white;
     font-weight: 600;
-    padding: 10px 24px;
+    padding: 12px 0px;
     font-size: 15px;
+    width: 100%;
     border: none;
-    border-radius: 8px;
+    border-radius: 10px;
     margin-top: 20px;
 }
 
 .stButton > button:hover {
-    background-color: #0747a6;
+    background-color: #0747A6;
 }
 </style>
 """, unsafe_allow_html=True)
 
-# ---------- Title + Branding ----------
-st.markdown('<h1 class="app-title">🧠 CaseCraft</h1>', unsafe_allow_html=True)
-st.markdown('<p class="app-subtitle">Smart Test Case Generation from Jira Tickets</p>', unsafe_allow_html=True)
+# ------------ Header ------------
+st.image("https://img.icons8.com/color/48/artificial-intelligence.png", width=50)  # blue AI icon
+st.markdown("<h1>CaseCraft</h1>", unsafe_allow_html=True)
+st.markdown('<p class="subtitle">Smart Test Case Generation from Jira Tickets</p>', unsafe_allow_html=True)
 
-# ---------- Jira Auth ----------
+# ------------ Jira Setup ------------
 JIRA_DOMAIN = "https://mitalisengar125.atlassian.net"
 JIRA_EMAIL = "mitalisengar125@gmail.com"
 
-# ---------- Fetch Jira Tickets ----------
 def fetch_all_ticket_ids(jira_project_key="SCRUM"):
     api_token = st.secrets["JIRA_API_TOKEN"]
     url = f"{JIRA_DOMAIN}/rest/api/3/search?jql=project={jira_project_key}&maxResults=10"
@@ -97,15 +102,11 @@ def fetch_all_ticket_ids(jira_project_key="SCRUM"):
         "Authorization": f"Basic {base64.b64encode(f'{JIRA_EMAIL}:{api_token}'.encode()).decode()}",
         "Accept": "application/json"
     }
-    response = requests.get(url, headers=headers)
-    if response.status_code == 200:
-        data = response.json()
-        return [issue["key"] for issue in data["issues"]]
-    else:
-        st.error(f"❌ Failed to fetch Jira tickets: {response.status_code}")
-        return []
+    res = requests.get(url, headers=headers)
+    if res.status_code == 200:
+        return [i["key"] for i in res.json()["issues"]]
+    return []
 
-# ---------- Fetch Ticket Summary ----------
 def fetch_jira_ticket_summary(ticket_id):
     api_token = st.secrets["JIRA_API_TOKEN"]
     url = f"{JIRA_DOMAIN}/rest/api/3/issue/{ticket_id}"
@@ -113,30 +114,33 @@ def fetch_jira_ticket_summary(ticket_id):
         "Authorization": f"Basic {base64.b64encode(f'{JIRA_EMAIL}:{api_token}'.encode()).decode()}",
         "Accept": "application/json"
     }
-    response = requests.get(url, headers=headers)
-    if response.status_code == 200:
-        fields = response.json()["fields"]
-        return fields.get("summary", ""), fields.get("priority", {}).get("name", "Not set")
-    else:
-        st.error("Failed to fetch ticket details.")
-        return "", ""
+    res = requests.get(url, headers=headers)
+    if res.status_code == 200:
+        f = res.json()["fields"]
+        return f.get("summary", ""), f.get("priority", {}).get("name", "Unknown")
+    return "", "Unknown"
 
-def extract_test_cases(markdown_text):
-    lines = markdown_text.split("\n")
-    return [{"Test Case": line.strip()} for line in lines if line.strip() and line.strip()[0].isdigit()]
+def extract_test_cases(text):
+    return [{"Test Case": line.strip()} for line in text.splitlines() if line.strip() and line.strip()[0].isdigit()]
 
-# ---------- UI Card ----------
-st.markdown('<div class="app-box">', unsafe_allow_html=True)
-st.markdown('<div class="section-header">📄 <span>Ticket Info</span></div>', unsafe_allow_html=True)
+# ------------ Ticket Info Card ------------
+st.markdown('<div class="card">', unsafe_allow_html=True)
+st.markdown("""
+<div class="section-title">
+    <img src="https://img.icons8.com/fluency/48/document.png" />
+    Ticket Info
+</div>
+""", unsafe_allow_html=True)
 
 ticket_ids = fetch_all_ticket_ids()
-selected_ticket = st.selectbox("Select Jira Ticket", ticket_ids, key="ticket_select")
+selected_ticket = st.selectbox("Select Jira Ticket", ticket_ids)
 
 summary, priority = fetch_jira_ticket_summary(selected_ticket)
 
 if summary:
     st.markdown(f"""
-        <div class="summary-box">
+        <div style="margin-top:10px; font-size: 14px;">Ticket Summary</div>
+        <div class="summary-row">
             <div>{selected_ticket} &nbsp;&nbsp; {summary}</div>
             <div>{priority}</div>
         </div>
@@ -148,18 +152,26 @@ if summary:
                 response = openai.chat.completions.create(
                     model="gpt-3.5-turbo",
                     messages=[
-                        {"role": "system", "content": "You are a QA expert generating test cases from Jira ticket summaries."},
-                        {"role": "user", "content": f"Generate test cases for this Jira summary:\n\n{summary}\nPriority: {priority}\n\nInclude positive, negative, and edge case scenarios."}
+                        {"role": "system", "content": "You are a QA expert generating test cases."},
+                        {"role": "user", "content": f"Generate test cases for:\n{summary}\nPriority: {priority}\nInclude: Positive, Negative, Edge Cases"}
                     ]
                 )
-                generated_text = response.choices[0].message.content
+                content = response.choices[0].message.content
 
-                st.markdown('<div class="app-box">', unsafe_allow_html=True)
-                st.markdown('<div class="section-header">🧪 <span>Test Case Output</span></div>', unsafe_allow_html=True)
-                st.success("✅ Generated Test Cases")
-                st.markdown(generated_text)
+                # ------------ Output Card ------------
+                st.markdown('</div>', unsafe_allow_html=True)  # Close first card
+                st.markdown('<div class="card">', unsafe_allow_html=True)
+                st.markdown("""
+                <div class="section-title">
+                    <img src="https://img.icons8.com/ios-filled/50/test-passed.png" />
+                    Test Case Output
+                </div>
+                """, unsafe_allow_html=True)
 
-                df = pd.DataFrame(extract_test_cases(generated_text))
+                st.success("✅ Test Cases Generated")
+                st.markdown(content)
+
+                df = pd.DataFrame(extract_test_cases(content))
                 output = io.BytesIO()
                 with pd.ExcelWriter(output, engine="openpyxl") as writer:
                     df.to_excel(writer, index=False, sheet_name="Test Cases")
@@ -167,12 +179,10 @@ if summary:
                 st.download_button(
                     label="📥 Download Test Cases (Excel)",
                     data=output.getvalue(),
-                    file_name="generated_test_cases.xlsx",
+                    file_name="test_cases.xlsx",
                     mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
                 )
 
-                st.markdown('</div>', unsafe_allow_html=True)
             except Exception as e:
-                st.error(f"❌ Error generating test cases: {e}")
-
-st.markdown('</div>', unsafe_allow_html=True)  # Close first card
+                st.error(f"❌ Error from OpenAI: {e}")
+st.markdown('</div>', unsafe_allow_html=True)  # Close last open card
