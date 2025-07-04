@@ -6,19 +6,25 @@ import requests
 import base64
 
 # --------- CUSTOM STYLING (Modern Jira-like) ---------
+# --------- FONT AND STYLE (Poppins) ---------
 st.markdown("""
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
     html, body, [class*="css"] {
-        font-family: 'Inter', sans-serif;
+        font-family: 'Poppins', sans-serif;
         font-size: 15px;
         color: #172B4D;
     }
 
-    h1, h2, h3, h4 {
-        font-weight: 700;
+    h1, h2, h3 {
+        font-weight: 700 !important;
         color: #172B4D;
-        margin-bottom: 0.5rem;
+    }
+
+    .big-header {
+        font-size: 26px !important;
+        font-weight: 700 !important;
+        margin-bottom: 8px;
     }
 
     .stButton > button {
@@ -35,17 +41,6 @@ st.markdown("""
         background-color: #0747A6;
     }
 
-    .stSelectbox > div > div {
-        border: 1px solid #DFE1E6;
-        border-radius: 6px;
-        padding: 6px 10px;
-    }
-
-    .stSelectbox > div > div:focus {
-        box-shadow: none !important;
-        border: 1px solid #4C9AFF !important;
-    }
-
     code {
         background-color: #F4F5F7;
         padding: 4px 8px;
@@ -54,12 +49,10 @@ st.markdown("""
         color: #091E42;
         display: inline-block;
     }
-
-    .stMarkdown {
-        line-height: 1.6;
-    }
 </style>
 """, unsafe_allow_html=True)
+
+
 
 # --------- HEADER ---------
 st.markdown("### 📋 AI-Powered Test Case Generator")
