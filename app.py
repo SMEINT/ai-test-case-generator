@@ -57,7 +57,7 @@ st.markdown("""
     }
 
     .summary-box {
-        background-color: #F4F5F7;
+        background-color: #00000;
         padding: 8px 12px;
         border-radius: 6px;
         font-size: 14px;
