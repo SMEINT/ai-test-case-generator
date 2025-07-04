@@ -8,83 +8,68 @@ import base64
 # ------------ Visual Styling (Fully Matched) ------------
 st.markdown("""
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-<style>
-html, body, [class*="css"] {
-    font-family: 'Inter', sans-serif;
-    background-color: #f5f8fc;
-    font-size: 15px;
-}
+st.markdown("""
+    <style>
+    html, body, [class*="css"] {
+        font-family: 'Inter', sans-serif;
+        background-color: #f5f8fc;
+    }
 
-h1 {
-    font-weight: 700;
-    font-size: 40px;
-    text-align: center;
-    color: #1a1a1a;
-    margin-bottom: 0;
-}
+    .card {
+        background-color: #ffffff;
+        padding: 24px 32px;
+        border-radius: 16px;
+        box-shadow: 0px 4px 16px rgba(0,0,0,0.05);
+        max-width: 700px;
+        margin: 0 auto 32px auto;
+    }
 
-p.subtitle {
-    text-align: center;
-    color: #6b7280;
-    font-size: 16px;
-    margin-top: 4px;
-    margin-bottom: 32px;
-}
+    .section-title {
+        display: flex;
+        align-items: center;
+        font-weight: 700;
+        font-size: 18px;
+        color: #1f2937;
+        margin-bottom: 16px;
+    }
 
-.card {
-    background-color: #ffffff;
-    padding: 24px 32px;
-    border-radius: 16px;
-    box-shadow: 0px 4px 16px rgba(0,0,0,0.05);
-    max-width: 700px;
-    margin: 0 auto 32px auto;
-}
+    .section-title img {
+        width: 22px;
+        height: 22px;
+        margin-right: 10px;
+    }
 
-.section-title {
-    display: flex;
-    align-items: center;
-    font-weight: 700;
-    font-size: 18px;
-    color: #1f2937;
-    margin-bottom: 16px;
-}
+    .summary-row {
+        background-color: #f1f5f9;
+        border-radius: 8px;
+        padding: 12px 16px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-weight: 500;
+        font-size: 14px;
+        color: #1e293b;
+        margin-top: 8px;
+    }
 
-.section-title img {
-    width: 22px;
-    height: 22px;
-    margin-right: 10px;
-}
+    .stButton > button {
+        background-color: #0052cc;
+        color: white;
+        font-weight: 600;
+        padding: 12px 0px;
+        font-size: 15px;
+        width: 100%;
+        border: none;
+        border-radius: 10px;
+        margin-top: 20px;
+    }
 
-.summary-row {
-    background-color: #f1f5f9;
-    border-radius: 8px;
-    padding: 12px 16px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-weight: 500;
-    font-size: 14px;
-    color: #1e293b;
-    margin-top: 8px;
-}
-
-.stButton > button {
-    background-color: #0052cc;
-    color: white;
-    font-weight: 600;
-    padding: 12px 0px;
-    font-size: 15px;
-    width: 100%;
-    border: none;
-    border-radius: 10px;
-    margin-top: 20px;
-}
-
-.stButton > button:hover {
-    background-color: #0747A6;
-}
-</style>
+    .stButton > button:hover {
+        background-color: #0747A6;
+    }
+    </style>
 """, unsafe_allow_html=True)
+
 
 # ------------ Header ------------
 st.image("https://img.icons8.com/color/48/artificial-intelligence.png", width=50)  # blue AI icon
