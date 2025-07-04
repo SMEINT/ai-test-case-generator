@@ -1,10 +1,8 @@
-
 import streamlit as st
 import openai
 import pandas as pd
 import io
 import requests
-import os
 import base64
 
 # --------- STYLING (Jira-inspired) ---------
@@ -104,17 +102,9 @@ if st.button("🚀 Generate Test Cases") and ticket_summary.strip():
             messages=[
                 {"role": "system", "content": "You are a QA expert helping generate test cases from Jira ticket summaries."},
                 {
-    "role": "user",
-    "content": f"Generate detailed test cases for the following feature:\n\n{ticket_summary}\n\nInclude:\n- ✅ Positive test cases\n- ❌ Negative test cases\n- 🟡 Edge case scenarios"
-}
-
-
-{ticket_summary}
-
-Include:
-- ✅ Positive test cases
-- ❌ Negative test cases
-- 🟡 Edge case scenarios"}
+                    "role": "user",
+                    "content": f"Generate detailed test cases for the following feature:\n\n{ticket_summary}\n\nInclude:\n- Positive test cases\n- Negative test cases\n- Edge case scenarios"
+                }
             ],
             temperature=0.7
         )
