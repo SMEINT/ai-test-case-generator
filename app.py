@@ -103,7 +103,11 @@ if st.button("🚀 Generate Test Cases") and ticket_summary.strip():
             model="gpt-3.5-turbo",
             messages=[
                 {"role": "system", "content": "You are a QA expert helping generate test cases from Jira ticket summaries."},
-                {"role": "user", "content": f"Generate detailed test cases for the following feature:
+                {
+    "role": "user",
+    "content": f"Generate detailed test cases for the following feature:\n\n{ticket_summary}\n\nInclude:\n- ✅ Positive test cases\n- ❌ Negative test cases\n- 🟡 Edge case scenarios"
+}
+
 
 {ticket_summary}
 
