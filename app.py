@@ -38,8 +38,6 @@ jira_ticket_ids = ["SCRUM-1", "SCRUM-2", "SCRUM-3"]  # Use your actual ticket ID
 selected_ticket = st.selectbox("🧾 Select Jira Ticket", jira_ticket_ids)
 ticket_summary = get_ticket_summary_from_jira(selected_ticket)
 
-}
-
 # Dropdown for selecting dummy Jira ticket
 selected_ticket = st.selectbox("🎫 Select Jira Ticket", list(dummy_tickets.keys()))
 ticket_summary = dummy_tickets[selected_ticket]
