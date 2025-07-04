@@ -99,9 +99,10 @@ def fetch_jira_ticket_summary(ticket_id):
 
 
 # --------- FETCH SUMMARY WITH PRIORITY ---------
-def fetch_jira_ticket_summary(ticket_id):
+def fetch_all_ticket_ids(jira_project_key="SCRUM"):
+    jira_url = JIRA_DOMAIN
     api_token = st.secrets["JIRA_API_TOKEN"]
-    url = f"{JIRA_DOMAIN}/rest/api/3/issue/{ticket_id}"
+    url = f"{jira_url}/rest/api/3/search?jql=project={jira_project_key}&maxResults=10"
     headers = {
         "Authorization": f"Basic {base64.b64encode(f'{JIRA_EMAIL}:{api_token}'.encode()).decode()}",
         "Accept": "application/json"
@@ -109,12 +110,12 @@ def fetch_jira_ticket_summary(ticket_id):
 
     response = requests.get(url, headers=headers)
     if response.status_code == 200:
-        data = response.json()["fields"]
-        summary = data.get("summary", "")
-        priority = data.get("priority", {}).get("name", "Not set")
-        return f"{summary} (Priority: {priority})"
+        data = response.json()
+        return [issue["key"] for issue in data["issues"]]
     else:
-        return f"❌ Error fetching ticket summary: {response.status_code} - {response.text}"
+        st.error(f"❌ Failed to fetch Jira tickets: {response.status_code}")
+        return []
+
 
 # --------- PARSE MARKDOWN ---------
 def extract_test_cases(markdown_text):
