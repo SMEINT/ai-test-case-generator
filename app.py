@@ -20,7 +20,10 @@ st.markdown("""
             border-radius: 16px;
             box-shadow: 0px 4px 16px rgba(0,0,0,0.05);
             max-width: 700px;
-            margin: 0 auto 32px auto;
+            .card {
+    margin: 16px auto 32px auto;
+}
+;
         }
 
         .section-title {
@@ -114,6 +117,7 @@ st.markdown("""
     Ticket Info
 </div>
 """, unsafe_allow_html=True)
+
 
 ticket_ids = fetch_all_ticket_ids()
 selected_ticket = st.selectbox("Select Jira Ticket", ticket_ids)
