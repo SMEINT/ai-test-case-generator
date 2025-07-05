@@ -5,37 +5,15 @@ import io
 import requests
 import base64
 
-# --- Load Inter font and global styles ---
+# -------------- STYLING --------------
+st.set_page_config(page_title="CaseCraft", layout="centered")
+
 st.markdown("""
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
-    html, body, [class*="css"]  {
+    html, body, [class*="css"] {
         font-family: 'Inter', sans-serif;
         background-color: #f5f8fc;
     }
-
-    .header {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 14px;
-        margin-bottom: 4px;
-    }
-
-    .title-text {
-        font-size: 36px;
-        font-weight: 700;
-        color: #111827;
-        margin: 0;
-    }
-
-    .subtitle {
-        text-align: center;
-        font-size: 16px;
-        color: #6b7280;
-        margin-bottom: 28px;
-    }
-
     .card {
         background-color: #ffffff;
         padding: 24px 32px;
@@ -44,7 +22,6 @@ st.markdown("""
         max-width: 700px;
         margin: 0 auto 32px auto;
     }
-
     .section-title {
         display: flex;
         align-items: center;
@@ -53,13 +30,11 @@ st.markdown("""
         color: #1f2937;
         margin-bottom: 16px;
     }
-
     .section-title img {
         width: 22px;
         height: 22px;
         margin-right: 10px;
     }
-
     .summary-row {
         background-color: #f1f5f9;
         border-radius: 8px;
@@ -72,7 +47,6 @@ st.markdown("""
         color: #1e293b;
         margin-top: 8px;
     }
-
     .stButton > button {
         background-color: #0052cc;
         color: white;
@@ -84,25 +58,27 @@ st.markdown("""
         border-radius: 10px;
         margin-top: 20px;
     }
-
     .stButton > button:hover {
         background-color: #0747A6;
+    }
+    .subtitle {
+        text-align: center;
+        font-size: 16px;
+        color: #6b7280;
+        margin-bottom: 28px;
     }
     </style>
 """, unsafe_allow_html=True)
 
-# --- Header ---
-st.markdown("""
-    <div class="header">
-        <img src="https://img.icons8.com/color/48/artificial-intelligence.png" width="48">
-        <h1 class="title-text">CaseCraft</h1>
-    </div>
-    <div class="subtitle">Smart Test Case Generation from Jira Tickets</div>
-""", unsafe_allow_html=True)
 
-# --- JIRA config ---
-JIRA_DOMAIN = "https://mitalisengar125.atlassian.net"
-JIRA_EMAIL = "mitalisengar125@gmail.com"
+# -------------- HEADER --------------
+st.image("https://img.icons8.com/color/48/artificial-intelligence.png", width=50)
+st.markdown("<h1 style='text-align:center;'>CaseCraft</h1>", unsafe_allow_html=True)
+st.markdown("<p class='subtitle'>Smart Test Case Generation from Jira Tickets</p>", unsafe_allow_html=True)
+
+# -------------- JIRA SETUP --------------
+JIRA_DOMAIN = "https://your-domain.atlassian.net"
+JIRA_EMAIL = "your-email@example.com"
 
 def fetch_all_ticket_ids(jira_project_key="SCRUM"):
     api_token = st.secrets["JIRA_API_TOKEN"]
@@ -132,14 +108,14 @@ def fetch_jira_ticket_summary(ticket_id):
 def extract_test_cases(text):
     return [{"Test Case": line.strip()} for line in text.splitlines() if line.strip() and line.strip()[0].isdigit()]
 
-# --- Ticket Info Card ---
-st.markdown('<div class="card">', unsafe_allow_html=True)
 
+# -------------- UI: Ticket Info --------------
+st.markdown('<div class="card">', unsafe_allow_html=True)
 st.markdown("""
-<div class="section-title">
-    <img src="https://img.icons8.com/fluency/48/document.png" />
-    Ticket Info
-</div>
+    <div class="section-title">
+        <img src="https://img.icons8.com/fluency/48/document.png" />
+        Ticket Info
+    </div>
 """, unsafe_allow_html=True)
 
 ticket_ids = fetch_all_ticket_ids()
@@ -168,15 +144,13 @@ if summary:
                 )
                 content = response.choices[0].message.content
 
-                st.markdown('</div>', unsafe_allow_html=True)  # close card
-
-                # Output Card
+                st.markdown('</div>', unsafe_allow_html=True)  # Close previous card
                 st.markdown('<div class="card">', unsafe_allow_html=True)
                 st.markdown("""
-                <div class="section-title">
-                    <img src="https://img.icons8.com/ios-filled/50/test-passed.png" />
-                    Test Case Output
-                </div>
+                    <div class="section-title">
+                        <img src="https://img.icons8.com/ios-filled/50/test-passed.png" />
+                        Test Case Output
+                    </div>
                 """, unsafe_allow_html=True)
 
                 st.success("✅ Test Cases Generated")
@@ -193,7 +167,9 @@ if summary:
                     file_name="test_cases.xlsx",
                     mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
                 )
+
             except Exception as e:
                 st.error(f"❌ Error from OpenAI: {e}")
-else:
-    st.markdown('</div>', unsafe_allow_html=True)
+
+st.markdown('</div>', unsafe_allow_html=True)  # Close card
+
