@@ -1,18 +1,34 @@
 import streamlit as st
-import openai
-import pandas as pd
-import io
 import requests
-import base64
 
-# -------------- STYLING --------------
-st.set_page_config(page_title="CaseCraft", layout="centered")
+# ----- CONFIG -----
+JIRA_DOMAIN = "https://your-domain.atlassian.net"
+JIRA_EMAIL = "your-email@example.com"
+JIRA_API_TOKEN = "your-api-token"
+JIRA_PROJECT_KEY = "SCRUM"
 
+# ----- CUSTOM CSS -----
 st.markdown("""
-    <style>
-    html, body, [class*="css"] {
-        font-family: 'Inter', sans-serif;
-        background-color: #f5f8fc;
+<style>
+    .header-container {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+        margin-top: -20px;
+    }
+    .title-text {
+        font-size: 36px;
+        font-weight: 700;
+        color: #111827;
+        margin: 0;
+    }
+    .subtitle {
+        text-align: center;
+        font-size: 16px;
+        color: #6b7280;
+        margin-top: -10px;
+        margin-bottom: 32px;
     }
     .card {
         background-color: #ffffff;
@@ -61,115 +77,68 @@ st.markdown("""
     .stButton > button:hover {
         background-color: #0747A6;
     }
-    .subtitle {
-        text-align: center;
-        font-size: 16px;
-        color: #6b7280;
-        margin-bottom: 28px;
-    }
-    </style>
+</style>
 """, unsafe_allow_html=True)
 
+# ----- FETCH JIRA TICKETS -----
+def fetch_all_ticket_ids(jira_project_key="SCRUM"):
+    url = f"{JIRA_DOMAIN}/rest/api/3/search"
+    query = {
+        'jql': f'project={jira_project_key}',
+        'fields': 'summary,priority',
+        'maxResults': 50
+    }
+    headers = {
+        "Accept": "application/json",
+        "Content-Type": "application/json"
+    }
 
-# -------------- HEADER --------------
-st.image("https://img.icons8.com/color/48/artificial-intelligence.png", width=50)
-st.markdown("<h1 style='text-align:center;'>CaseCraft</h1>", unsafe_allow_html=True)
+    response = requests.get(url, headers=headers, auth=(JIRA_EMAIL, JIRA_API_TOKEN), params=query)
+    if response.status_code == 200:
+        issues = response.json().get("issues", [])
+        return [
+            {
+                "id": issue["key"],
+                "summary": issue["fields"]["summary"],
+                "priority": issue["fields"]["priority"]["name"]
+            }
+            for issue in issues
+        ]
+    else:
+        return []
+
+# ----- HEADER -----
+col1, col2 = st.columns([1, 6])
+with col1:
+    st.image("https://cdn-icons-png.flaticon.com/512/4140/4140047.png", width=48)
+with col2:
+    st.markdown("<div class='header-container'><h1 class='title-text'>CaseCraft</h1></div>", unsafe_allow_html=True)
+
 st.markdown("<p class='subtitle'>Smart Test Case Generation from Jira Tickets</p>", unsafe_allow_html=True)
 
-# -------------- JIRA SETUP --------------
-JIRA_DOMAIN = "https://your-domain.atlassian.net"
-JIRA_EMAIL = "your-email@example.com"
+# ----- MAIN CARD -----
+st.markdown("<div class='card'>", unsafe_allow_html=True)
+st.markdown(
+    "<div class='section-title'><img src='https://cdn-icons-png.flaticon.com/512/2861/2861369.png'/> Ticket Info</div>",
+    unsafe_allow_html=True
+)
 
-def fetch_all_ticket_ids(jira_project_key="SCRUM"):
-    api_token = st.secrets["JIRA_API_TOKEN"]
-    url = f"{JIRA_DOMAIN}/rest/api/3/search?jql=project={jira_project_key}&maxResults=10"
-    headers = {
-        "Authorization": f"Basic {base64.b64encode(f'{JIRA_EMAIL}:{api_token}'.encode()).decode()}",
-        "Accept": "application/json"
-    }
-    res = requests.get(url, headers=headers)
-    if res.status_code == 200:
-        return [i["key"] for i in res.json()["issues"]]
-    return []
+tickets = fetch_all_ticket_ids(JIRA_PROJECT_KEY)
 
-def fetch_jira_ticket_summary(ticket_id):
-    api_token = st.secrets["JIRA_API_TOKEN"]
-    url = f"{JIRA_DOMAIN}/rest/api/3/issue/{ticket_id}"
-    headers = {
-        "Authorization": f"Basic {base64.b64encode(f'{JIRA_EMAIL}:{api_token}'.encode()).decode()}",
-        "Accept": "application/json"
-    }
-    res = requests.get(url, headers=headers)
-    if res.status_code == 200:
-        f = res.json()["fields"]
-        return f.get("summary", ""), f.get("priority", {}).get("name", "Unknown")
-    return "", "Unknown"
+if not tickets:
+    st.warning("⚠️ Could not load Jira tickets. Check credentials or project key.")
+else:
+    ticket_ids = [ticket["id"] for ticket in tickets]
+    selected_ticket = st.selectbox("Select Jira Ticket", ticket_ids)
 
-def extract_test_cases(text):
-    return [{"Test Case": line.strip()} for line in text.splitlines() if line.strip() and line.strip()[0].isdigit()]
+    selected_summary = next((t["summary"] for t in tickets if t["id"] == selected_ticket), "")
+    selected_priority = next((t["priority"] for t in tickets if t["id"] == selected_ticket), "")
 
+    st.markdown(
+        f"<div class='summary-row'><span>{selected_ticket}  &nbsp; {selected_summary}</span><span>{selected_priority}</span></div>",
+        unsafe_allow_html=True
+    )
 
-# -------------- UI: Ticket Info --------------
-st.markdown('<div class="card">', unsafe_allow_html=True)
-st.markdown("""
-    <div class="section-title">
-        <img src="https://img.icons8.com/fluency/48/document.png" />
-        Ticket Info
-    </div>
-""", unsafe_allow_html=True)
+    st.button("Generate Test Cases")
 
-ticket_ids = fetch_all_ticket_ids()
-selected_ticket = st.selectbox("Select Jira Ticket", ticket_ids)
-
-summary, priority = fetch_jira_ticket_summary(selected_ticket)
-
-if summary:
-    st.markdown(f"""
-        <div style="margin-top:10px; font-size: 14px;">Ticket Summary</div>
-        <div class="summary-row">
-            <div>{selected_ticket} &nbsp;&nbsp; {summary}</div>
-            <div>{priority}</div>
-        </div>
-    """, unsafe_allow_html=True)
-
-    if st.button("Generate Test Cases"):
-        with st.spinner("Generating test cases using AI..."):
-            try:
-                response = openai.chat.completions.create(
-                    model="gpt-3.5-turbo",
-                    messages=[
-                        {"role": "system", "content": "You are a QA expert generating test cases."},
-                        {"role": "user", "content": f"Generate test cases for:\n{summary}\nPriority: {priority}\nInclude: Positive, Negative, Edge Cases"}
-                    ]
-                )
-                content = response.choices[0].message.content
-
-                st.markdown('</div>', unsafe_allow_html=True)  # Close previous card
-                st.markdown('<div class="card">', unsafe_allow_html=True)
-                st.markdown("""
-                    <div class="section-title">
-                        <img src="https://img.icons8.com/ios-filled/50/test-passed.png" />
-                        Test Case Output
-                    </div>
-                """, unsafe_allow_html=True)
-
-                st.success("✅ Test Cases Generated")
-                st.markdown(content)
-
-                df = pd.DataFrame(extract_test_cases(content))
-                output = io.BytesIO()
-                with pd.ExcelWriter(output, engine="openpyxl") as writer:
-                    df.to_excel(writer, index=False, sheet_name="Test Cases")
-
-                st.download_button(
-                    label="📥 Download Test Cases (Excel)",
-                    data=output.getvalue(),
-                    file_name="test_cases.xlsx",
-                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-                )
-
-            except Exception as e:
-                st.error(f"❌ Error from OpenAI: {e}")
-
-st.markdown('</div>', unsafe_allow_html=True)  # Close card
-
+st.markdown("</div>", unsafe_allow_html=True)
