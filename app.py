@@ -21,7 +21,7 @@ st.markdown("""
             box-shadow: 0px 4px 16px rgba(0,0,0,0.05);
             max-width: 700px;
             
-            margin: 16px auto 32px auto;
+            margin: 0 auto 32px auto;
 
 ;
         }
