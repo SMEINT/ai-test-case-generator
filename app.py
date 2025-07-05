@@ -20,9 +20,9 @@ st.markdown("""
             border-radius: 16px;
             box-shadow: 0px 4px 16px rgba(0,0,0,0.05);
             max-width: 700px;
-            .card {
-    margin: 16px auto 32px auto;
-}
+            
+            margin: 16px auto 32px auto;
+
 ;
         }
 
