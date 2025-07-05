@@ -124,4 +124,48 @@ if summary:
     st.markdown(f"""
         <div style="margin-top:10px; font-size: 14px;">Ticket Summary</div>
         <div class="summary-row">
-            <div>{selecte
+            <div>{selected_ticket} &nbsp;&nbsp; {summary}</div>
+            <div>{priority}</div>
+        </div>
+    """, unsafe_allow_html=True)
+
+    if st.button("Generate Test Cases"):
+        with st.spinner("Generating test cases using AI..."):
+            try:
+                response = openai.chat.completions.create(
+                    model="gpt-3.5-turbo",
+                    messages=[
+                        {"role": "system", "content": "You are a QA expert generating test cases."},
+                        {"role": "user", "content": f"Generate test cases for:\n{summary}\nPriority: {priority}\nInclude: Positive, Negative, Edge Cases"}
+                    ]
+                )
+                content = response.choices[0].message.content
+
+                # ------------ Output Card ------------
+                st.markdown('</div>', unsafe_allow_html=True)  # Close first card
+                st.markdown('<div class="card">', unsafe_allow_html=True)
+                st.markdown("""
+                <div class="section-title">
+                    <img src="https://img.icons8.com/ios-filled/50/test-passed.png" />
+                    Test Case Output
+                </div>
+                """, unsafe_allow_html=True)
+
+                st.success("✅ Test Cases Generated")
+                st.markdown(content)
+
+                df = pd.DataFrame(extract_test_cases(content))
+                output = io.BytesIO()
+                with pd.ExcelWriter(output, engine="openpyxl") as writer:
+                    df.to_excel(writer, index=False, sheet_name="Test Cases")
+
+                st.download_button(
+                    label="📥 Download Test Cases (Excel)",
+                    data=output.getvalue(),
+                    file_name="test_cases.xlsx",
+                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                )
+
+            except Exception as e:
+                st.error(f"❌ Error from OpenAI: {e}")
+st.markdown('</div>', unsafe_allow_html=True)  # Close last open card
