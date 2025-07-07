@@ -140,17 +140,21 @@ if summary:
     """, unsafe_allow_html=True)
 
 if description_content:
-    desc_lines = []
-    for block in description_content:
+   desc_lines = []
+for block in description_content:
+    if block.get("type") == "paragraph":
+        paragraph = ""
         for inner in block.get("content", []):
             if inner.get("type") == "text":
-                desc_lines.append(inner["text"])
-    full_description = " ".join(desc_lines)
-
-    st.markdown(f"""
-        <div style="margin-top:20px; font-size: 14px;">Description</div>
-        <div class="summary-row">{full_description}</div>
-    """, unsafe_allow_html=True)
+                paragraph += inner.get("text", "")
+        desc_lines.append(paragraph)
+full_description = "\n\n".join(desc_lines)
+   st.markdown(f"""
+<div style="margin-top:10px; font-size: 14px;">Description</div>
+<div class="summary-row">
+<pre style="white-space: pre-wrap; font-size: 13px; font-family: 'Inter', sans-serif; color: #1e293b; margin: 0;">{full_description}</pre>
+</div>
+""", unsafe_allow_html=True)
 
 
     if st.button("Generate Test Cases"):
