@@ -149,7 +149,7 @@ for block in description_content:
                 paragraph += inner.get("text", "")
         desc_lines.append(paragraph)
 full_description = "\n\n".join(desc_lines)
-   st.markdown(f"""
+    st.markdown(f"""
 <div style="margin-top:10px; font-size: 14px;">Description</div>
 <div class="summary-row">
 <pre style="white-space: pre-wrap; font-size: 13px; font-family: 'Inter', sans-serif; color: #1e293b; margin: 0;">{full_description}</pre>
