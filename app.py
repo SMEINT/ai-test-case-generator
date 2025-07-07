@@ -139,14 +139,19 @@ if summary:
         </div>
     """, unsafe_allow_html=True)
 
-    if description_content:
+        if description_content:
         desc_lines = []
         for block in description_content:
             for inner in block.get("content", []):
                 if inner.get("type") == "text":
                     desc_lines.append(inner["text"])
         full_description = " ".join(desc_lines)
-        st.markdown(f'<div class="description-box">{full_description}</div>', unsafe_allow_html=True)
+
+        st.markdown(f"""
+            <div style="margin-top:20px; font-size: 14px;">Description</div>
+            <div class="summary-row">{full_description}</div>
+        """, unsafe_allow_html=True)
+
 
     if st.button("Generate Test Cases"):
         with st.spinner("Generating test cases using AI..."):
