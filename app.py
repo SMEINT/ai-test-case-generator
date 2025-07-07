@@ -5,7 +5,7 @@ import io
 import requests
 import base64
 
-# ------------ FIXED: Visual Styling (Wrapped correctly) ------------
+# ------------ VISUAL STYLING ------------
 st.markdown("""
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
@@ -51,6 +51,16 @@ st.markdown("""
             margin-top: 8px;
         }
 
+        .description-box {
+            background-color: #ffffff;
+            border-left: 4px solid #0052cc;
+            padding: 12px 16px;
+            margin-top: 12px;
+            border-radius: 6px;
+            font-size: 14px;
+            color: #334155;
+        }
+
         .stButton > button {
             background-color: #0052cc;
             color: white;
@@ -69,12 +79,12 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# ------------ Header ------------
-st.image("https://img.icons8.com/color/48/artificial-intelligence.png", width=50)  # blue AI icon
+# ------------ HEADER ------------
+st.image("https://img.icons8.com/color/48/artificial-intelligence.png", width=50)
 st.markdown("<h1>CaseCraft</h1>", unsafe_allow_html=True)
 st.markdown('<p class="subtitle">Smart Test Case Generation from Jira Tickets</p>', unsafe_allow_html=True)
 
-# ------------ Jira Setup ------------
+# ------------ JIRA CONFIG ------------
 JIRA_DOMAIN = "https://mitalisengar125.atlassian.net"
 JIRA_EMAIL = "mitalisengar125@gmail.com"
 
@@ -90,7 +100,7 @@ def fetch_all_ticket_ids(jira_project_key="SCRUM"):
         return [i["key"] for i in res.json()["issues"]]
     return []
 
-def fetch_jira_ticket_summary(ticket_id):
+def fetch_ticket_info(ticket_id):
     api_token = st.secrets["JIRA_API_TOKEN"]
     url = f"{JIRA_DOMAIN}/rest/api/3/issue/{ticket_id}"
     headers = {
@@ -99,14 +109,14 @@ def fetch_jira_ticket_summary(ticket_id):
     }
     res = requests.get(url, headers=headers)
     if res.status_code == 200:
-        f = res.json()["fields"]
-        return f.get("summary", ""), f.get("priority", {}).get("name", "Unknown")
-    return "", "Unknown"
+        fields = res.json()["fields"]
+        return fields.get("summary", ""), fields.get("priority", {}).get("name", "Unknown"), fields.get("description", {}).get("content", "")
+    return "", "Unknown", ""
 
 def extract_test_cases(text):
     return [{"Test Case": line.strip()} for line in text.splitlines() if line.strip() and line.strip()[0].isdigit()]
 
-# ------------ Ticket Info Card ------------
+# ------------ UI ------------
 st.markdown('<div class="card">', unsafe_allow_html=True)
 st.markdown("""
 <div class="section-title">
@@ -118,7 +128,7 @@ st.markdown("""
 ticket_ids = fetch_all_ticket_ids()
 selected_ticket = st.selectbox("Select Jira Ticket", ticket_ids)
 
-summary, priority = fetch_jira_ticket_summary(selected_ticket)
+summary, priority, description_content = fetch_ticket_info(selected_ticket)
 
 if summary:
     st.markdown(f"""
@@ -129,20 +139,29 @@ if summary:
         </div>
     """, unsafe_allow_html=True)
 
+    if description_content:
+        desc_lines = []
+        for block in description_content:
+            for inner in block.get("content", []):
+                if inner.get("type") == "text":
+                    desc_lines.append(inner["text"])
+        full_description = " ".join(desc_lines)
+        st.markdown(f'<div class="description-box">{full_description}</div>', unsafe_allow_html=True)
+
     if st.button("Generate Test Cases"):
         with st.spinner("Generating test cases using AI..."):
             try:
+                prompt = f"Generate test cases for:\n{summary}\nPriority: {priority}\nInclude: Positive, Negative, and Edge cases."
                 response = openai.chat.completions.create(
                     model="gpt-3.5-turbo",
                     messages=[
                         {"role": "system", "content": "You are a QA expert generating test cases."},
-                        {"role": "user", "content": f"Generate test cases for:\n{summary}\nPriority: {priority}\nInclude: Positive, Negative, Edge Cases"}
+                        {"role": "user", "content": prompt}
                     ]
                 )
                 content = response.choices[0].message.content
 
-                # ------------ Output Card ------------
-                st.markdown('</div>', unsafe_allow_html=True)  # Close first card
+                st.markdown('</div>', unsafe_allow_html=True)
                 st.markdown('<div class="card">', unsafe_allow_html=True)
                 st.markdown("""
                 <div class="section-title">
@@ -155,17 +174,21 @@ if summary:
                 st.markdown(content)
 
                 df = pd.DataFrame(extract_test_cases(content))
-                output = io.BytesIO()
-                with pd.ExcelWriter(output, engine="openpyxl") as writer:
-                    df.to_excel(writer, index=False, sheet_name="Test Cases")
+                if not df.empty:
+                    output = io.BytesIO()
+                    with pd.ExcelWriter(output, engine="openpyxl") as writer:
+                        df.to_excel(writer, index=False, sheet_name="Test Cases")
 
-                st.download_button(
-                    label="📥 Download Test Cases (Excel)",
-                    data=output.getvalue(),
-                    file_name="test_cases.xlsx",
-                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-                )
+                    st.download_button(
+                        label="📥 Download Test Cases (Excel)",
+                        data=output.getvalue(),
+                        file_name="test_cases.xlsx",
+                        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                    )
+                else:
+                    st.warning("⚠️ No test cases extracted.")
 
             except Exception as e:
-                st.error(f"❌ Error from OpenAI: {e}")
-st.markdown('</div>', unsafe_allow_html=True)  # Close last open card
+                st.error(f"❌ Error: {e}")
+
+st.markdown('</div>', unsafe_allow_html=True)
