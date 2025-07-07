@@ -143,7 +143,7 @@ if summary:
         desc_lines = []
         for block in description_content:
             for inner in block.get("content", []):
-                if inner.get("type") == "text":
+        if inner.get("type") == "text":
                     desc_lines.append(inner["text"])
         full_description = " ".join(desc_lines)
 
